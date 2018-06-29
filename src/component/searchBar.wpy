@@ -1,0 +1,63 @@
+<!--  -->
+<template>
+    <!-- 搜索 -->
+  <view class="search-bar">
+    <icon type="search" size="16"></icon>
+    <input type="text" class="search-input" @focus="toSearchPage" placeholder="搜索">
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class searchBar extends wepy.component {
+  props = {}
+
+  data = {}
+
+  components = {}
+
+  methods = {}
+
+  events = {}
+
+  watch = {}
+
+  computed = {}
+
+  onLoad() {}
+
+  onShow() {}
+}
+</script>
+
+<style lang='less'>
+// 搜索模块样式
+.search-bar {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 20rpx 16rpx;
+  height: 100rpx;
+  background-color: #ff2d4a;
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  icon {
+    position: absolute;
+    z-index: 999;
+    left: 50%;
+    top: 50%;
+    transform: translate(-200%, -50%);
+  }
+  .search-input {
+    background: #fff;
+    font-size: 26rpx;
+    color: #bbb;
+    border-radius: 10rpx;
+    height: 60rpx;
+    width: 100%;
+    text-align: center;
+  }
+}
+</style>

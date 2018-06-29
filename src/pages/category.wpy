@@ -1,0 +1,167 @@
+<style lang='less'>
+page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+// 公共样式
+.fl {
+  float: left;
+}
+.fr {
+  float: right;
+}
+.clearfix {
+  overflow: hidden;
+}
+
+// 主体模块样式
+.main {
+  flex: 1;
+  height: 100%;
+  box-sizing: border-box;
+  padding-top: 100rpx;
+  background-color: #fff;
+  display: flex;
+  .left {
+    width: 200rpx;
+    background: #f4f4f4;
+    .item {
+      height: 100rpx;
+      position: relative;
+      text-align: center;
+      line-height: 100rpx;
+      font-size: 24rpx;
+      border-bottom: 2rpx solid #eee;
+      &.active {
+        background-color: #fff;
+        color: #eb4450;
+      }
+      &.active::after {
+        content: '';
+        position: absolute;
+        height: 60rpx;
+        width: 10rpx;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #eb4450;
+      }
+    }
+  }
+  .right {
+    flex: 1;
+    .title {
+      padding: 40rpx 0;
+      font-size: 26rpx;
+      text-align: center;
+      text {
+        color: #eee;
+        margin:0 30rpx; 
+      }
+    }
+    .item {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      navigator {
+        display: block;
+        width: 33.3333%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 150rpx;
+        padding-bottom: 30rpx;
+        box-sizing: border-box;
+        image {
+          width: 90rpx;
+          height: 90rpx;
+          background-size: contain;
+          margin-bottom: 10rpx;
+        }
+        text {
+          font-size: 22rpx;
+        }
+      }
+    }
+  }
+}
+</style>
+<template>
+  <!-- 搜索 -->
+  <searchBar></searchBar>
+  <!-- 主体内容 -->
+  <view class="main">
+        <scroll-view scroll-y style="height: 100%;" class="left" bindscrolltoupper="upper" bindscrolltolower="lower" bindscroll="scroll" scroll-into-view="{{toView}}" scroll-top="{{scrollTop}}">
+            <block wx:for="{{categoryData}}" wx:for-index="i">  
+                <view @tap="selectedCategory({{index}})" data-index={{i}} class="item {{i==selectIndex?'active':''}}">{{item.cat_name}}</view>
+            </block>
+        </scroll-view>
+        <scroll-view scroll-y style="height: 100%;" class="right" bindscrolltoupper="upper" bindscrolltolower="lower" bindscroll="scroll" scroll-into-view="{{toView}}" scroll-top="{{scrollTop}}">
+             <block wx:for="{{categoryData[selectIndex].children}}">  
+                <view class="title"><text>/</text>{{item.cat_name}}<text>/</text></view>
+                   <view class="item">
+                        <block wx:for="{{item.children}}" wx:for-index="i" wx:for-item="value">
+                                <navigator url="{{}}" open-type="navigate" hover-class="none">
+                                <image src="{{APIHost+value.cat_icon}}"></image>
+                                <text class="cat-name">{{value.cat_name}}</text>
+                            </navigator>
+                        </block>
+                   </view>
+            </block>
+        </scroll-view>
+
+  </view>
+</template>
+
+<script>
+// 导入searchBar组件
+import searchBar from '../component/searchBar'
+// 引入分装好的函数
+var methods = require('../utils/methods.js')
+import wepy from 'wepy'
+export default class category extends wepy.page {
+  config = {
+    navigationBarTitleText: '分类',
+    selectFlage: 0 // 选中分类标志位
+  }
+
+  data = {
+    APIHost: 'https://www.zhengzhicheng.cn/',
+    categoryData: '', // 分类数据
+    selectIndex: 0 //选中分类索引
+  }
+
+  components = {
+    searchBar
+  }
+
+  methods = {
+    selectedCategory(event) {
+      console.log(event)
+      this.selectIndex = event.currentTarget.dataset.index
+    }
+  }
+
+  events = {}
+
+  watch = {}
+
+  computed = {}
+
+  onLoad() {
+    console.log(methods)
+    // 获取查询分类数据
+    methods.methods.request({
+      url: 'api/public/v1/categories',
+      success: backData => {
+        console.log(backData)
+        this.categoryData = backData.data.message
+        this.$apply()
+      }
+    })
+  }
+
+  onShow() {}
+}
+</script>

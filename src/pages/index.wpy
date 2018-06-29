@@ -1,0 +1,273 @@
+<style lang="less">
+// 公共样式
+.fl {
+  float: left;
+}
+.fr {
+  float: right;
+}
+.clearfix {
+  overflow: hidden;
+}
+.main {
+  // 轮播模块样式
+  padding-top: 100rpx;
+  .swiper {
+    width: 100%;
+    height: 340rpx;
+    swiper-item {
+      width: 100%;
+      height: 100%;
+      navigator {
+        display: block;
+        width: 100%;
+        height: 100%;
+        image {
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+  }
+  // 导航模块样式
+  .nav {
+    display: flex;
+    align-items: center;
+    navigator {
+      padding: 24rpx 0 29rpx;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      image {
+        width: 128rpx;
+        height: 128rpx;
+      }
+    }
+  }
+  // 产品模块样式
+  .products {
+    width: 100%;
+    .item {
+      width: 100%;
+      .title {
+        width: 100%;
+        height: 90rpx;
+        padding-top: 30rpx;
+        box-sizing: border-box;
+        background-color: #f4f4f4;
+        image {
+          width: 100%;
+          height: 100%;
+          vertical-align: middle;
+        }
+      }
+      .products-pic {
+        padding: 20rpx 16rpx;
+        height: 426rpx;
+        width: 100%;
+        box-sizing: border-box;
+        navigator {
+          display: block;
+          &:first-child {
+            height: 100%;
+            margin-right: 10rpx;
+            image {
+              height: 100%;
+            }
+          }
+          &:not(:first-child) {
+            height: 188rpx;
+            box-sizing: border-box;
+            image {
+              height: 100%;
+            }
+          }
+          &:nth-child(2) {
+            margin-bottom: 10rpx;
+          }
+          &:nth-child(3) {
+            margin-bottom: 10rpx;
+          }
+          &:nth-child(2n) {
+            margin-right: 10rpx;
+          }
+        }
+      }
+    }
+  }
+}
+// 底线
+.footer {
+  height: 230rpx;
+  background-color: #f4f4f4;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  padding-top: 24rpx;
+  .iconfont {
+    margin-right: 12rpx;
+    font-size: 28rpx;
+  }
+}
+// 回到顶部
+.goTop {
+  width: 90rpx;
+  height: 90rpx;
+  background-color: #fff;
+  border-radius: 50%;
+  position: fixed;
+  z-index: 99999;
+  bottom: 90rpx;
+  right: 16rpx;
+  text-align: center;
+  color: #666;
+  .iconfont {
+  }
+  .title {
+    font-size: 24rpx;
+    padding: 0;
+    margin: 0;
+    margin-top: -4rpx;
+  }
+}
+</style>
+<template>
+  <!-- 使用组件 -->
+  <searchBar></searchBar>
+  <!-- 主体模块 -->
+  <view class="main">
+    <!-- 轮播图 -->
+    <swiper indicator-dots autoplay circular class="swiper">
+        <block wx:for="{{swiperData}}" wx:key="">
+            <swiper-item>
+              <navigator url="{{item.navigator_url}}" open-type="{{item.open_type}}" hover-class="none">
+                  <image mode="aspectFill" src="{{item.image_src}}"></image>
+              </navigator>
+            </swiper-item>
+        </block>
+    </swiper>
+    <!-- 分类导航 -->
+    <view class="nav">
+        <block wx:for="{{navData}}">
+          <navigator url="item.navigator_url" data-name="{{item.name}}" open-type="{{item.open_type}}">
+            <image src='{{item.image_src}}'></image>
+          </navigator>
+        </block>
+    </view>
+    <!-- 产品模块  -->
+    <view class="products">
+        <block wx:for="{{productsData}}" wx:for-index="i">
+          <view class="item">
+            <view class="title">
+              <image class="title-pic" src="{{item.floor_title.image_src}}"></image>
+            </view>
+            <view class="products-pic">
+                  <block wx:for="{{item.product_list}}" wx:for-item="product" wx:for-index="i">
+                      <navigator url="{{product.navigator_url}}" class="fl">
+                        <image src='{{product.image_src}}'style="width:{{product.image_width}}rpx"></image>
+                      </navigator>
+                  </block>
+            </view>
+          </view>
+        
+        </block>
+    </view>
+  </view>
+  <!-- 底线 -->
+  <view class="footer">
+    <text class="iconfont icon-xiao"></text>
+    <text class="">我是有底线的</text>
+  </view>
+  <!-- 回到顶部 -->
+  <view class="goTop" @tap="goTop" hidden="{{isHidden}}">
+    <text class="iconfont icon-jiantoushang"></text>
+    <view class="title">顶部</view>
+  </view>
+</template>
+
+<script>
+// 引入公共功能模块
+var methods = require('../utils/methods.js')
+// 引入组件
+import searchBar from '../component/searchBar'
+import wepy from 'wepy'
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: '优购'
+  }
+  //声明页面中将要使用到的组件
+  components = {
+    searchBar
+  }
+  data = {
+    swiperData: '', // 轮播图数据
+    navData: '', // 导航数据
+    productsData: '', // 产品数据
+    isHidden: true // 回到顶部标志位
+  }
+  onLoad() {
+    console.log(methods)
+    console.log('onLoad')
+    // 调用轮播图接口获取轮播图数据
+    methods.methods.request({
+      url: 'api/public/v1/home/swiperdata',
+      success: backData => {
+        console.log(this)
+        console.log(backData)
+        this.swiperData = backData.data.message
+        this.$apply()
+      }
+    })
+    // 调用导航接口获取导航数据
+    methods.methods.request({
+      url: 'api/public/v1/home/catitems',
+      success: backData => {
+        this.navData = backData.data.message
+        this.$apply()
+      }
+    })
+    // 调用产品接口获取产品数据
+    methods.methods.request({
+      url: 'api/public/v1/home/floordata',
+      success: backData => {
+        if (backData.statusCode != 200) {
+          console.log(backData.errMsg)
+          return
+        }
+        this.productsData = backData.data.message
+        this.$apply()
+      }
+    })
+  }
+  methods = {
+    toSearchPage(event) {
+      // console.log(event);
+      // 搜索框获得焦点，跳转到搜索页面
+      wepy.navigateTo({
+        url: '/pages/search'
+      })
+    },
+    // 显示隐藏回到顶部
+    onPageScroll(event) {
+      // console.log(event)
+      if (event.scrollTop >= 100) {
+        this.isHidden = false
+      } else {
+        this.isHidden = true
+      }
+    },
+    // 回到顶部
+    goTop(event) {
+      // console.log(event)
+      wepy.pageScrollTo({
+        scrollTop: 0, //滚动到页面的目标位置（单位px）,
+        duration: 300 //滚动动画的时长，默认300ms，单位 ms,
+      })
+      // 回到顶部隐藏
+      this.isHidden = true
+    }
+  }
+}
+</script>

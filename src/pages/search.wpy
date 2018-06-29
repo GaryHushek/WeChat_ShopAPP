@@ -1,0 +1,92 @@
+<!--  -->
+<template>
+  <!-- 搜索 -->
+  <view class="search-bar">
+    <icon type="search" size="16"></icon>
+    <form >
+        <input type="text" class="search-input" @focus="toSearchPage" placeholder="搜索">
+        <button type="subimit" >取消</button>
+    </form>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class Example extends wepy.page {
+  config = {
+    navigationBarTitleText: '搜索'
+  }
+
+  data = {}
+
+  components = {}
+
+  methods = {}
+
+  events = {}
+
+  watch = {}
+
+  computed = {}
+
+  onLoad() {}
+
+  onShow() {}
+}
+</script>
+
+<style lang='less'>
+// 公共样式
+.fl {
+  float: left;
+}
+.fr {
+  float: right;
+}
+.clearfix {
+  overflow: hidden;
+}
+// 搜索模块样式
+
+.search-bar {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 30rpx 15rpx;
+  height: 120rpx;
+  background-color: #eee;
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  icon {
+    position: absolute;
+    z-index: 999;
+    left: 40rpx;
+  }
+  form {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    .search-input {
+      background: #fff;
+      font-size: 26rpx;
+      color: #bbb;
+      border-radius: 10rpx;
+      height: 100%;
+      width: 538rpx;
+      text-align: left;
+      padding: 0 70rpx;
+      box-sizing: border-box;
+      margin-right: 20rpx;
+    }
+    button {
+      width: 156rpx;
+      height: 100%;
+      font-size: 30rpx;
+      line-height: 58rpx;
+      box-sizing: border-box;
+    }
+  }
+}
+</style>
