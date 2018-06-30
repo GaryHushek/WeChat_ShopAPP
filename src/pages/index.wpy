@@ -150,7 +150,7 @@
     <!-- 分类导航 -->
     <view class="nav">
         <block wx:for="{{navData}}">
-          <navigator url="item.navigator_url" data-name="{{item.name}}" open-type="{{item.open_type}}">
+          <navigator url="{{item.navigator_url}}" data-name="{{item.name}}" open-type="{{item.open_type}}">
             <image src='{{item.image_src}}'></image>
           </navigator>
         </block>

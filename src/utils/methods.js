@@ -16,7 +16,11 @@ var methods = {
       success: options.success || (backData => console.log(backData)),
       fail: err => console.log(PositionError)
     })
-  }
+  },
+  /**
+   * 保存搜索记录
+   */
+
 }
 
 // 暴露出methods

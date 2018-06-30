@@ -16,7 +16,15 @@ export default class searchBar extends wepy.component {
 
   components = {}
 
-  methods = {}
+  methods = {
+    toSearchPage(event) {
+      // console.log(event);
+      // 搜索框获得焦点，跳转到搜索页面
+      wepy.navigateTo({
+        url: '/pages/search'
+      })
+    }
+  }
 
   events = {}
 
