@@ -1,0 +1,76 @@
+<style lang='less'>
+// 回到顶部
+.goTop {
+  width: 90rpx;
+  height: 90rpx;
+  background-color: #fff;
+  border-radius: 50%;
+  position: fixed;
+  z-index: 99999;
+  bottom: 90rpx;
+  right: 16rpx;
+  text-align: center;
+  color: #666;
+  .iconfont {
+  }
+  .title {
+    font-size: 24rpx;
+    padding: 0;
+    margin: 0;
+    margin-top: -4rpx;
+  }
+}
+</style>
+<template>
+  <!-- 回到顶部 -->
+  <view class="goTop" @tap="goTop" hidden="{{isHidden}}">
+    <text class="iconfont icon-jiantoushang"></text>
+    <view class="title">顶部</view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class toTop extends wepy.component {
+  props = {}
+
+  data = {
+    isHidden: false // 回到顶部标志位
+  }
+
+  components = {}
+
+  methods = {
+    // 回到顶部
+    goTop(event) {
+      console.log(event)
+      wepy.pageScrollTo({
+        scrollTop: 0, //滚动到页面的目标位置（单位px）,
+        duration: 300 //滚动动画的时长，默认300ms，单位 ms,
+      })
+      // 回到顶部隐藏
+      this.isHidden = false
+    },
+    // 显示隐藏回到顶部
+    onPageScroll(event) {
+      console.log(event)
+      if (event.scrollTop >= 100) {
+        this.isHidden = false
+      } else {
+        this.isHidden = true
+      }
+    }
+  }
+
+  events = {}
+
+  watch = {}
+
+  computed = {}
+
+  onLoad() {}
+
+  onShow() {}
+}
+</script>
+

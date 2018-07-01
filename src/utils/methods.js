@@ -81,10 +81,12 @@ var methods = {
     })
   },
   /**
-   * 收藏与取消收藏（用Storage模拟）
+   * 收藏与取消收藏 （用Storage模拟）
    * options:{
    *  goods_id: Number 产品的ID (必填)
-   *  flag: Number 收藏还是取消收藏 0：取消收藏 1：收藏 (必填)
+   *  flag: Number 收藏还是取消收藏(加入购物车与移出购物车) 0：取消收藏 1：收藏 (必填)
+   *  hasFn: Function  如果Stroage有执行的回调 （选填）
+   *  dontHas: Function  如果没有执行的回调  （选填）
    * }
    */
   likes: options => {
@@ -92,10 +94,22 @@ var methods = {
       // 收藏
       // 查询是否存在Storage
       wx.getStorage({
-        key: 'likes',
+        key: options.key || 'likes',
         success: res => {
           // 有 添加
           console.log(res)
+          var likesArr = res.data
+          for (var i = 0; i < likesArr.length; i++) {
+            if (likesArr[i].goods_id == options.goods_id) {
+              console.log('已存在')
+              // 执行待添加的数据已存在的回调
+              options.hasFn()
+              return
+            }
+          }
+          if (options.dontHas) {
+            options.dontHas()
+          }
           // 获取到收藏数组数据
           var likesArr = res.data
           likesArr.push({
@@ -103,20 +117,28 @@ var methods = {
           })
           // 重新设置Stroage的值
           wx.setStorage({
-            key: 'likes',
+            key: options.key || 'likes',
             data: likesArr
           })
+          if (options.dontHas) {
+            options.dontHas()
+          }
         },
         fail: err => {
           // 没有 新建
           wx.setStorage({
-            key: 'likes',
+            key: options.key || 'likes',
             data: [
               {
-                goods_id: options.goods_id
+                goods_id: options.goods_id,
+                num: 1
               }
             ]
           })
+          if (options.dontHas) {
+            options.dontHas()
+          }
+          return true
         }
       })
     } else {
@@ -130,7 +152,6 @@ var methods = {
           // 循环判断存在数组的索引
           for (var i = 0; i < likesArr.length; i++) {
             if (likesArr[i].goods_id == options.goods_id) {
-              console.log('!!!!!!!!')
               likesArr.splice(i, 1)
               // 重新设置Stroage的值
               wx.setStorage({
@@ -146,9 +167,71 @@ var methods = {
               break
             }
           }
+          return true
         }
       })
     }
+  },
+  /**
+   * 添加到购物车（用Storage模拟）
+   * options:{
+   *    goods_id: Number 商品id (必填)
+   *    fail: Function 失败执行的回调
+   *    success: Function 成功执行的回调
+   * }
+   */
+  addCart: options => {
+    // 查询本地缓存
+    wx.getStorage({
+      key: 'cart',
+      success: res => {
+        console.log(res)
+        var result = res.data
+        // 如果有
+        for (var i = 0; i < result.length; i++) {
+          if (result[i].goods_id == options.goods_id) {
+            result[i].num += 1
+            wx.setStorage({
+              key: 'cart',
+              data: result,
+              fail: err => {
+                console.log(err)
+              },
+              success: () => console.log('添加成功')
+            })
+            return
+          }
+        }
+        // 如果没有就新建一个对象保存添加进入购物车的数据
+        result.push({
+          goods_id: options.goods_id,
+          num: 1,
+          isCheck:false
+        })
+        wx.setStorage({
+          key: 'cart',
+          data: result,
+          fail: err => {
+            console.log(err)
+          },
+          success: () => console.log('添加成功')
+        })
+      },
+      fail: err => {
+        console.log(err)
+        // 不存在新建
+        wx.setStorage({
+          key: 'cart',
+          data: [
+            {
+              goods_id: options.goods_id,
+              num: 1,
+              isCheck:false
+            }
+          ]
+        })
+      }
+    })
   }
 }
 

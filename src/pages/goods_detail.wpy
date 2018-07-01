@@ -1,10 +1,10 @@
 <style lang='less'>
+// 引入wxParse.wxss
+@import '../wxParse/wxParse.wxss';
 page {
   width: 100%;
   height: 100%;
   background-color: #f4f4f4;
-  display: flex;
-  flex-direction: column;
 }
 .detail-content {
   height: 1020rpx;
@@ -47,10 +47,24 @@ page {
     }
     .title {
       width: 100%;
+      word-break: break-all;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
       display: flex;
+
       .title {
-        font-size: 30rpx;
+        font-size: 26rpx;
         width: 608rpx;
+        word-break: break-all;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        border-right: 2rpx solid #ccc;
+        padding-right: 40rpx;
+        box-sizing: border-box;
       }
       .likes {
         height: 100%;
@@ -78,12 +92,10 @@ page {
     }
   }
 }
-.detail-bottom {
-  flex: 1;
+.detail-info {
   margin-top: 20rpx;
   background-color: #fff;
-  display: flex;
-  flex-direction: column;
+  padding-bottom: 98rpx;
   .top {
     flex: 1;
     font-size: 28rpx;
@@ -95,10 +107,27 @@ page {
       margin-left: 40rpx;
     }
   }
+  .wxParse-img {
+    width: 100%;
+    display: block;
+  }
+}
+.detail-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #ccc;
+  height: 98rpx;
   .bottom {
     height: 98rpx;
     display: flex;
+    box-sizing: border-box;
     .left {
+      box-sizing: border-box;
       flex: 1;
       display: flex;
       .item {
@@ -108,17 +137,19 @@ page {
         align-items: center;
         justify-content: cenetr;
         .iconfont {
+          margin-top: 10rpx;
           color: #999;
           font-size: 34rpx;
         }
         view {
           font-size: 28rpx;
-          margin-top: 10rpx;
+          margin-top: 4rpx;
           color: #999;
         }
       }
     }
     .right {
+      box-sizing: border-box;
       flex: 1;
       display: flex;
       color: white;
@@ -128,11 +159,13 @@ page {
         background-color: #f4b73f;
         font-size: 28rpx;
         flex: 1;
+        box-sizing: border-box;
       }
       .buy {
         flex: 1;
         background-color: #eb4450;
         font-size: 28rpx;
+        box-sizing: border-box;
       }
     }
   }
@@ -141,7 +174,7 @@ page {
 <template>
    <view class="detail-content">
         <!-- 商品详情图片 -->
-        <view class="detail-img">
+        <view class="detail-img" @tap="preImg">
             <swiper indicator-dots autoplay circular>
                 <block wx:for="{{detail_data.pics}}" wx:key="">
                     <swiper-item>
@@ -156,18 +189,24 @@ page {
             <view class="title item">
                 <text class="title">{{detail_data.goods_name}}</text>
                 <view class="likes" @tap="addLikes">
-                    <text class="iconfont {{!likesFlag?'icon-shoucang':'icon-shoucang-fill'}}"></text>
+                    <text style="color:{{likesFlag?'#eb4450':''}}" class="iconfont {{!likesFlag?'icon-shoucang':'icon-shoucang-fill'}}"></text>
                     <text class="shoucang">{{!likesFlag?'收藏':'取消'}}</text>
                 </view>
             </view>
             <view class="express item">快递:免运费</view>
         </view>
    </view>
-   <view class="detail-bottom">
+   <view class="detail-info">
        <view class="top">
            <text>促销</text>
            <text class="mark">满300减30元</text>
        </view>
+       <!-- // 引入模板 -->
+      <import src="..//wxParse/wxParse.wxml"/>
+      <!-- //这里data中article为bindName -->
+      <template is="wxParse" data="{{wxParseData:article.nodes}}"/>
+   </view>
+   <view class="detail-bottom">
        <view class="bottom">
            <view class="left">
                <view class="item">
@@ -188,6 +227,9 @@ page {
 </template>
   
 <script>
+// 引入wxParse.js
+var WxParse = require('../wxParse/wxParse.js')
+
 // 引入封装好的功能函数
 var methods = require('../utils/methods.js')
 import wepy from 'wepy'
@@ -199,7 +241,8 @@ export default class goods_detail extends wepy.page {
   data = {
     detail_data: '', // 商品详细信息数据
     likesFlag: 0, // 是否收藏标志位
-    goods_id: ''
+    goods_id: '',
+    previewImgUrls: []
   }
 
   components = {}
@@ -230,11 +273,13 @@ export default class goods_detail extends wepy.page {
           })
         },
         login: () => {
-          // 已登录
-          console.log('已登录')
-          // 提示加入购物车成功
-          wx.showToast({
-            title: '加入成功',
+          // 使用封装好的函数
+          methods.methods.addCart({
+            goods_id: this.goods_id
+          })
+          // 提示添加成功
+          wepy.showToast({
+            title: '添加成功',
             icon: 'success',
             duration: 1500,
             mask: false
@@ -248,22 +293,9 @@ export default class goods_detail extends wepy.page {
         key: 'loginFlag',
         noLogin: () => {
           // 未登录 提示去登陆才能加入购物车
-          wepy.showModal({
-            title: '请登录',
-            content: '您未登录，登陆才能使用此功能',
-            showCancel: true,
-            cancelText: '取消',
-            cancelColor: '#000000',
-            confirmText: '登陆',
-            confirmColor: '#3CC51F',
-            success: res => {
-              if (res.confirm) {
-                // 跳转到我的页面
-                wx.switchTab({
-                  url: 'me'
-                })
-              }
-            }
+          // 去购物车页面
+          wepy.switchTab({
+            url: 'cart'
           })
         },
         login: () => {
@@ -276,7 +308,7 @@ export default class goods_detail extends wepy.page {
         }
       })
     },
-    // 加入收藏
+    // 加入（取消）收藏
     addLikes(event) {
       this.loginCheck({
         key: 'loginFlag',
@@ -365,6 +397,13 @@ export default class goods_detail extends wepy.page {
           console.log('已登录')
         }
       })
+    },
+    // 轮播图预览
+    preImg(event) {
+      wx.previewImage({
+        current: this.previewImgUrls[0], // 当前显示图片的http链接
+        urls: this.previewImgUrls // 需要预览的图片http链接列表
+      })
     }
   }
 
@@ -385,6 +424,20 @@ export default class goods_detail extends wepy.page {
       success: backData => {
         // console.log(backData)
         this.detail_data = backData.data.message
+        this.detail_data.pics.forEach(element => {
+          this.previewImgUrls.push(element.pics_mid)
+        })
+        var article = this.detail_data.goods_introduce
+        /**
+         * WxParse.wxParse(bindName , type, data, target,imagePadding)
+         * 1.bindName绑定的数据名(必填)
+         * 2.type可以为html或者md(必填)
+         * 3.data为传入的具体数据(必填)
+         * 4.target为Page对象,一般为this(必填)
+         * 5.imagePadding为当图片自适应是左右的单一padding(默认为0,可选)
+         */
+        var that = this
+        WxParse.wxParse('article', 'html', article, that)
         this.$apply()
       }
     })

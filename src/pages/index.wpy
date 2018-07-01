@@ -110,27 +110,6 @@
     font-size: 28rpx;
   }
 }
-// 回到顶部
-.goTop {
-  width: 90rpx;
-  height: 90rpx;
-  background-color: #fff;
-  border-radius: 50%;
-  position: fixed;
-  z-index: 99999;
-  bottom: 90rpx;
-  right: 16rpx;
-  text-align: center;
-  color: #666;
-  .iconfont {
-  }
-  .title {
-    font-size: 24rpx;
-    padding: 0;
-    margin: 0;
-    margin-top: -4rpx;
-  }
-}
 </style>
 <template>
   <!-- 使用组件 -->
@@ -170,7 +149,6 @@
                   </block>
             </view>
           </view>
-        
         </block>
     </view>
   </view>
@@ -180,10 +158,7 @@
     <text class="">我是有底线的</text>
   </view>
   <!-- 回到顶部 -->
-  <view class="goTop" @tap="goTop" hidden="{{isHidden}}">
-    <text class="iconfont icon-jiantoushang"></text>
-    <view class="title">顶部</view>
-  </view>
+  <toTop></toTop>
 </template>
 
 <script>
@@ -191,6 +166,7 @@
 var methods = require('../utils/methods.js')
 // 引入组件
 import searchBar from '../component/searchBar'
+import toTop from '../component/toTop'
 import wepy from 'wepy'
 
 export default class Index extends wepy.page {
@@ -199,13 +175,13 @@ export default class Index extends wepy.page {
   }
   //声明页面中将要使用到的组件
   components = {
-    searchBar
+    searchBar,
+    toTop
   }
   data = {
     swiperData: '', // 轮播图数据
     navData: '', // 导航数据
-    productsData: '', // 产品数据
-    isHidden: true // 回到顶部标志位
+    productsData: '' // 产品数据
   }
   onLoad() {
     console.log(methods)
@@ -257,16 +233,6 @@ export default class Index extends wepy.page {
       } else {
         this.isHidden = true
       }
-    },
-    // 回到顶部
-    goTop(event) {
-      // console.log(event)
-      wepy.pageScrollTo({
-        scrollTop: 0, //滚动到页面的目标位置（单位px）,
-        duration: 300 //滚动动画的时长，默认300ms，单位 ms,
-      })
-      // 回到顶部隐藏
-      this.isHidden = true
     }
   }
 }

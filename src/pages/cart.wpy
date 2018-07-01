@@ -1,32 +1,485 @@
-<!--  -->
+<style lang='less'>
+page {
+  background-color: #f4f4f4;
+}
+.cart-img {
+  height: 300rpx;
+  text-align: center;
+  font-size: 28rpx;
+  image {
+    display: block;
+    width: 182rpx;
+    height: 182rpx;
+    margin: 0 auto;
+    border-radius: 50%;
+    margin-top: 100rpx;
+    margin-bottom: 50rpx;
+  }
+}
+.cartData-list {
+  padding-bottom: 150rpx;
+  .address {
+    background-color: #fff;
+    margin-bottom: 20rpx;
+    .chooseAddress {
+      height: 208rpx;
+      display: flex;
+      flex-direction: column;
+      font-size: 32rpx;
+      line-height: 104rpx;
+      padding: 0 30rpx 0 18rpx;
+      box-sizing: border-box;
+      .top {
+        height: 50%;
+        display: flex;
+        justify-content: space-between;
+      }
+      .bottom {
+        height: 50%;
+        display: flex;
+      }
+    }
+    image {
+      width: 100%;
+      height: 15rpx;
+      display: block;
+    }
+  }
+  .cart-list {
+    background-color: #fff;
+    .items {
+      .shop-name {
+        height: 87rpx;
+      }
+      .item {
+        height: 205rpx;
+        display: flex;
+        border-bottom: 2rpx solid #ccc;
+        box-sizing: border-box;
+        .left {
+          width: 250rpx;
+          height: 100%;
+          margin-right: 26rpx;
+          display: flex;
+          align-items: center;
+          .xuanze {
+            width: 90rpx;
+            padding: 30rpx;
+            box-sizing: border-box;
+            color: #ccc;
+            .iconfont {
+              font-size: 40rpx;
+            }
+          }
+          image {
+            width: 160rpx;
+            height: 160rpx;
+          }
+        }
+        .right {
+          font-size: 30rpx;
+          padding: 20rpx 18rpx 20rpx 0;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          .title {
+            word-break: break-all;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+          .bottom {
+            display: flex;
+            box-sizing: border-box;
+            justify-content: space-between;
+            .price {
+              color: #ff2d4a;
+              .price {
+                font-size: 32rpx;
+                margin-right: 4rpx;
+              }
+            }
+            .control {
+              display: flex;
+              .btn {
+                flex: 1;
+                width: 42rpx;
+                height: 42rpx;
+                border: 4rpx solid #ddd;
+                text-align: center;
+                line-height: 44rpx;
+                box-sizing: border-box;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              }
+              .num {
+                width: 90rpx;
+                border: none;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+.orders {
+  height: 97rpx;
+  width: 100%;
+  background-color: #fff;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  font-size: 30rpx;
+  .left {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .iconfont {
+      color: #ccc;
+      font-size: 38rpx;
+      padding: 20rpx;
+    }
+  }
+  .center {
+    display: flex;
+    width: 300rpx;
+    padding-top: 10rpx;
+    box-sizing: border-box;
+    .center-left {
+      display: flex;
+      flex-direction: column;
+      .express {
+        color: #999;
+        font-size: 26rpx;
+      }
+    }
+    .center-right {
+      display: flex;
+      color: #ff2d4a;
+      .total-price {
+        font-size: 32rpx;
+      }
+    }
+  }
+  .right {
+    background-color: #ff2d4a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    width: 230rpx;
+  }
+}
+</style>
 <template>
-  <view class='container'>购物车</view>
+  <!-- 如果购物车没有数据渲染的内容 -->
+  <view class="cart-img" hidden="{{cartFlag}}">
+    <image src='../img/carts.png'></image>
+    <view>你还没添加任何商品</view>
+  </view>
+  <view class="cartData-list" hidden="{{!cartFlag}}">
+    <view class="address" @tap="chooseAddress">
+      <view class="chooseAddress">
+        <view class="top">
+          <text class="user">收货人:{{user.userName}}</text>
+          <text class="phone">{{user.telNumber}}</text>
+          <text class="iconfont icon-jiantouyou"></text>
+        </view>
+        <view class="bottom">
+          <text>收货地址:</text>
+          <view class="addressDetail">
+            {{user.provinceName}}{{user.cityName}}{{user.countyName}}{{user.detailInfo}}
+          </view>
+        </view>
+      </view>
+      <image class="shadow" src="../img/shawdow.png"></image>
+    </view>
+    <view class="cart-list">
+       <view class="items">
+         <view calss="shop-name"></view>
+        <block wx:for="{{cartDetail}}">
+           <view class="item">
+           <view class="left">
+            <view class="xuanze"  @tap="chooseGoods({{index}})"><text class="iconfont icon-xuanze-fill" style="color:{{cartData[index].isCheck?'#eb4450':''}}"></text></view>
+            <image src="{{item.goods_small_logo}}"></image>
+           </view>
+           <view class="right">
+             <view class="title">{{item.goods_name}}</view>
+             <view class="bottom">
+               <view class="price">
+                 <text>￥</text><text class="price">{{item.goods_price}}.</text>00
+               </view>
+               <view class="control">
+                 <view class="addBtn btn" @tap="subtractCount({{index}})">-</view>
+                 <view class="num btn">{{cartData[index].num}}</view>
+                 <view class="jianBtn btn" @tap="addCount({{index}})">+</view>
+               </view>
+             </view>
+           </view>
+         </view>
+        </block>
+       </view>
+    </view>
+  </view>
+  <!-- 结算栏 -->
+  <view class="orders" hidden="{{!cartFlag}}">
+    <view class="left item">
+      <text class="iconfont icon-xuanze-fill" @tap="allChoose" style="color:{{allChooseFlag?'#eb4450':''}}"></text>
+      <text>全选</text>
+    </view>
+    <view class="center item">
+      <view class="center-left">
+        <text>合计:</text>
+        <text class="express">包含运费</text>
+      </view>
+      <view class="center-right">
+        <view>￥<text class="total-price">{{totalPrice}}.</text>00</view>
+      </view>
+    </view>
+    <view class="right item">结算({{totalCount}})</view>
+  </view>
 </template>
 
 <script>
-  import wepy from 'wepy';
-  export default class cart extends wepy.page {
-    config = {
-      navigationBarTitleText: "",
-    };
-
-    data = {};
-
-    components = {};
-
-    methods = {};
-
-    events = {};
-
-    watch = {};
-
-    computed = {};
-
-    onLoad() { };
-
-    onShow() { };
+// 引入封装好的函数
+var methods = require('../utils/methods.js')
+import wepy from 'wepy'
+export default class cart extends wepy.page {
+  config = {
+    navigationBarTitleText: '购物车'
   }
-</script>
 
-<style lang='less'>
-</style>
+  data = {
+    // 收货人数据
+    user: {},
+    cartData: [], // 购物车数据
+    cartDetail: [], // 购物车详情数据
+    cartFlag: true, // 购物车有无数据的标志位 , 默认进入页面无购物车数据
+    allChooseFlag: false, // 全选标志位
+    totalCount: '' // 购物车被选中商品个数
+  }
+
+  components = {}
+
+  methods = {
+    // 选择收货地址
+    chooseAddress(event) {
+      wx.chooseAddress({
+        success: res => {
+          console.log(res.userName)
+          console.log(res.postalCode)
+          console.log(res.provinceName)
+          console.log(res.cityName)
+          console.log(res.countyName)
+          console.log(res.detailInfo)
+          console.log(res.nationalCode)
+          console.log(res.telNumber)
+          this.user = res
+          this.$apply()
+        }
+      })
+    },
+    // 选择商品
+    chooseGoods(index) {
+      // 是否被全选标志位
+      var flag = true
+      console.log(index)
+      this.cartData[index].isCheck = !this.cartData[index].isCheck
+      // 检查所有商品是否被选择
+      for (var i = 0; i < this.cartData.length; i++) {
+        if (!this.cartData[i].isCheck) {
+          // 有任一个未被选中
+          this.allChooseFlag = false
+          flag = false
+          break
+        }
+      }
+      // flag标志位为true说明全部都是选中状态，全选按钮置1
+      if (flag) {
+        this.allChooseFlag = true
+      }
+      // 更新Storage
+      wx.setStorage({
+        key: 'cart',
+        data: this.cartData
+      })
+    },
+    // 增加商品数量
+    addCount(index) {
+      console.log(index)
+      // 去修改this.cartData的num值
+      this.cartData[index].num += 1
+      // 从新把数据存入Stroage
+      wx.setStorage({
+        key: 'cart',
+        data: this.cartData,
+        success: res => console.log(res),
+        fail: err => console.log(err)
+      })
+    },
+    // 减少商品数量
+    subtractCount(index) {
+      // 去修改this.cartData的num值
+      if (this.cartData[index].num > 0) {
+        this.cartData[index].num -= 1
+      } else {
+        // 如果显示数量为0 还继续点击减
+        // 从数据中删掉这个商品
+        this.cartDetail.splice(index, 1) // 页面显示同步
+        this.cartData.splice(index, 1) // Stroage同步
+      }
+      // 从新把数据存入Stroage
+      wx.setStorage({
+        key: 'cart',
+        data: this.cartData,
+        success: res => console.log(res),
+        fail: err => console.log(err)
+      })
+    },
+    // 全选/反选
+    allChoose(event) {
+      console.log(event)
+      this.allChooseFlag = !this.allChooseFlag
+      for (var i = 0; i < this.cartData.length; i++) {
+        this.cartData[i].isCheck = this.allChooseFlag
+      }
+      // 同步Stroage
+      wx.setStorage({
+        key: 'cart',
+        data: this.cartData
+      })
+    }
+  }
+
+  events = {}
+
+  watch = {}
+
+  computed = {
+    // 计算总价功能
+    totalPrice() {
+      var totalPrice = 0
+      // 遍历找出被选中的商品的价格与数量
+      console.log(this.cartDetail)
+      for (var i = 0; i < this.cartDetail.length; i++) {
+        if (this.cartData[i].isCheck) {
+          // 被选中
+          var count = this.cartData[i].num
+          var price = this.cartDetail[i].goods_price
+          var total = count * price
+          totalPrice += total
+        }
+      }
+      if (totalPrice) {
+        return totalPrice
+      } else {
+        return 0
+      }
+    }
+  }
+
+  onLoad() {
+    this.checkChooseFlag()
+  }
+
+  onShow() {
+    // 检测用户是否登陆
+    // if (this.$parent.globalData.loginFlag) {
+    //   // 获取本地购物车缓存,获取购物车数据
+    //   wepy.getStorage({
+    //     key: 'cart',
+    //     success: res => {
+    //       console.log(res)
+    //       // 有数据
+    //       this.cartFlag = true // 购物车隐藏标志位
+    //       // 拿到数据
+    //       for (var i = 0; i < res.data.length; i++) {
+    //         this.cartData.push(res.data[i].goods_id)
+    //         this.$apply()
+    //       }
+    //       console.log(this.cartData)
+    //     },
+    //     fail: err => {
+    //       console.log(err)
+    //       // 没有数据
+    //     }
+    //   })
+    // } else {
+    //   // 未登录 提示去登陆才能查看购物车
+    //   wepy.showModal({
+    //     title: '请登录',
+    //     content: '您未登录，登陆才能使用此功能',
+    //     showCancel: true,
+    //     cancelText: '取消',
+    //     cancelColor: '#000000',
+    //     confirmText: '登陆',
+    //     confirmColor: '#3CC51F',
+    //     success: res => {
+    //       if (res.confirm) {
+    //         // 跳转到我的页面
+    //         wx.switchTab({
+    //           url: 'me'
+    //         })
+    //       }
+    //     }
+    //   })
+    // }
+    // 查询本地Stroage 查出购物车数据
+    wx.getStorage({
+      key: 'cart',
+      success: res => {
+        // 购物车数据
+        this.cartData = res.data
+        // 查询是否全部被选中
+        var flag = true
+        for (var i = 0; i < this.cartData.length; i++) {
+          if (!this.cartData[i].isCheck) {
+            flag = false
+            this.allChooseFlag = false
+            break
+          }
+        }
+        if (flag) {
+          this.allChooseFlag = true
+        }
+        this.$apply()
+        var ids = ''
+        for (var i = 0; i < res.data.length; i++) {
+          ids += res.data[i].goods_id
+          if (i != res.data.length - 1) {
+            ids += ','
+          }
+        }
+        // 调用接口查询到购物车商品详情
+        methods.methods.request({
+          url: 'api/public/v1/goods/goodslist?goods_ids=' + ids,
+          success: backData => {
+            console.log(backData)
+            // 购物车详情数据
+            this.cartDetail = backData.data.message
+            this.$apply()
+          }
+        })
+      }
+    })
+  }
+  // 检测被选中的个数
+  checkChooseFlag() {
+    console.log(this)
+    var result = 0
+    for (var i; i < this.cartData.length; i++) {
+      if (this.cartData[i].isCheck) {
+        console.log('!!!!!!!')
+        result += 1
+      }
+    }
+    return result
+  }
+}
+</script>
