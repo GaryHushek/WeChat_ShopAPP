@@ -1,6 +1,6 @@
 <!--  -->
 <template>
-  <view class='container'></view>
+  <view class='container'>购物车</view>
 </template>
 
 <script>

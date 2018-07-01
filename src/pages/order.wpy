@@ -1,0 +1,101 @@
+<style lang='less'>
+page {
+  background: #f4f4f4;
+  height: 100%;
+}
+.navBar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  .top {
+    height: 100rpx;
+    display: flex;
+    background-color: #fff;
+    position: relative;
+    .item {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 28rpx;
+    }
+    .moveBar {
+      position: absolute;
+      height: 12rpx;
+      width: 188rpx;
+      background-color: #ff2d4a;
+      bottom: 0;
+    }
+  }
+  .content-list {
+    flex: 1;
+    margin-top: 30rpx;
+    background-color: #fff;
+  }
+}
+</style>
+<template>  
+  <!-- navBar -->
+  <view class="navBar">
+      <view class="top">
+          <view @tap="selectItem(0)" class="item {{selectIndex==0?'active':''}}">全部</view>
+          <view @tap="selectItem(1)" class="item {{selectIndex==1?'active':''}}">待付款</view>
+          <view @tap="selectItem(2)" class="item {{selectIndex==2?'active':''}}">已付款</view>
+          <view @tap="selectItem(3)" class="item {{selectIndex==3?'active':''}}">退款/退货</view>
+          <view class="moveBar" animation="{{animationData}}" style="left:{{moveLeft}}rpx"></view>
+      </view>
+      <view class="content-list">
+        <view hidden="{{selectIndex!=0}}" class="content">1</view>
+        <view hidden="{{selectIndex!=1}}" class="content">2</view>
+        <view hidden="{{selectIndex!=2}}" class="content">3</view>
+        <view hidden="{{selectIndex!=3}}" class="content">4</view>
+      </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class Example extends wepy.page {
+  config = {
+    navigationBarTitleText: '订单'
+  }
+
+  data = {
+    selectIndex: 0,
+    animationData: '' // 东动画数据
+  }
+
+  components = {}
+
+  methods = {
+    //
+    selectItem(index) {
+      this.selectIndex = index
+      this.animate.translateX(94 * index).step({ duration: 200 })
+      this.animationData = this.animate.export()
+      this.$apply()
+    }
+  }
+
+  events = {}
+
+  watch = {}
+
+  computed = {}
+
+  onLoad() {}
+
+  onShow() {
+    this.move()
+    console.log(this.animate)
+  }
+  // 移动动画
+  move() {
+    this.animate = wepy.createAnimation({
+      duration: 1000,
+      timingFunction: 'linear'
+    })
+  }
+}
+</script>
+

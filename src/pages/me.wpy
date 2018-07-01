@@ -23,8 +23,16 @@
       margin: 0 60rpx 20rpx;
     }
   }
-  navigator {
+  view.login {
     font-size: 28rpx;
+    position: relative;
+    button {
+      position: absolute;
+      width: 145rpx;
+      height: 50rpx;
+      left: -30rpx;
+      opacity: 0;
+    }
   }
 }
 .bottom {
@@ -135,16 +143,19 @@
   <view class="top">
     <view class="pic">
       <text class="iconfont icon-shezhi"></text>
-      <image class="userHeaderPic" src=""></image>
+      <image class="userHeaderPic" src="{{userInfo.avatarUrl}}" open-type="getUserInfo" @tap="login" ></image>
       <text class="iconfont icon-xiaoxi"></text>
     </view>
-    <navigator url="{{}}">
-      <text>登陆/注册</text>
-    </navigator>
+    <view class="login" url="{{}}">
+      <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="getUserInfo"></button>
+      <text  @tap="login" wx:if="{{!userInfo.nickName}}">登陆
+      </text>
+      <text wx:else>{{userInfo.nickName}}</text>
+    </view>
   </view>
   <view class="bottom">
     <view class="content">
-      <view class="top-content">
+      <view class="top-content" >
         <navigator class="item">
           <text>0</text>
           <text>收藏的店铺</text>
@@ -162,7 +173,7 @@
           <text>我的足迹</text>
         </navigator>
       </view>
-      <view class="order-list">
+      <view class="order-list" @tap="toOrderPage">
         <text class="title">我的订单</text>
         <view class="pic">
           <navigator class="item">
@@ -183,7 +194,7 @@
           </navigator>
         </view>
       </view>
-      <navigator class="option">
+      <navigator @tap="goAddressControl" class="option">
         <view class="item">
             <text class="title">收货地址管理</text>
             <text class="iconfont icon-jiantouyou"></text>
@@ -219,17 +230,65 @@
 </template>
 
 <script>
+// 获取全局app实例数据
 import wepy from 'wepy'
 export default class me extends wepy.page {
   config = {
     navigationBarTitleText: '我 的'
   }
 
-  data = {}
+  data = {
+    userInfo: false
+  }
 
   components = {}
 
-  methods = {}
+  methods = {
+    // 获取用户信息(登陆)
+    login: event => {
+      console.log(event)
+      wx.getUserInfo({
+        success: res => {
+          console.log(res)
+          this.userInfo = res.userInfo
+          this.$parent.globalData.loginFlag = true
+          this.$apply()
+        },
+        fail: err => {
+          console.log(err)
+        },
+        complete: () => {}
+      })
+    },
+    getUserInfo: event => {
+      console.log(event)
+      this.userInfo = event.detail.userInfo
+      this.$parent.globalData.loginFlag = true
+      this.$apply()
+    },
+    // 管理收获地址
+    goAddressControl: event => {
+      console.log(event)
+      wepy.chooseAddress({
+        success: function(res) {
+          console.log(res.userName)
+          console.log(res.postalCode)
+          console.log(res.provinceName)
+          console.log(res.cityName)
+          console.log(res.countyName)
+          console.log(res.detailInfo)
+          console.log(res.nationalCode)
+          console.log(res.telNumber)
+        }
+      })
+    },
+    // 去订单页
+    toOrderPage(event) {
+      wx.navigateTo({
+        url: 'order'
+      })
+    }
+  }
 
   events = {}
 
@@ -237,7 +296,10 @@ export default class me extends wepy.page {
 
   computed = {}
 
-  onLoad() {}
+  onLoad() {
+    // 检测用户是否登陆
+    console.log(this.$parent.globalData.loginFlag)
+  }
 
   onShow() {}
 }

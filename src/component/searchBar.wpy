@@ -3,7 +3,7 @@
     <!-- 搜索 -->
   <view class="search-bar">
     <icon type="search" size="16"></icon>
-    <input type="text" class="search-input" @focus="toSearchPage" placeholder="搜索">
+    <input type="text" class="search-input" @tap="toSearchPage" placeholder="搜索">
   </view>
 </template>
 

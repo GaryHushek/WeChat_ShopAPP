@@ -1,0 +1,459 @@
+<style lang='less'>
+page {
+  width: 100%;
+  height: 100%;
+  background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+}
+.detail-content {
+  height: 1020rpx;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  .detail-img {
+    width: 100%;
+    height: 720rpx;
+    swiper {
+      width: 100%;
+      height: 100%;
+      swiper-item {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        image {
+          height: 100%;
+          width: 100%;
+        }
+      }
+    }
+  }
+  .goods-info {
+    flex: 1;
+    padding: 0 20rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    .item {
+      flex: 1;
+    }
+    .price {
+      color: #eb4450;
+      font-size: 40rpx;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .title {
+      width: 100%;
+      display: flex;
+      .title {
+        font-size: 30rpx;
+        width: 608rpx;
+      }
+      .likes {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        .shoucang {
+          font-size: 28rpx;
+          color: #999;
+        }
+        .iconfont {
+          color: #999;
+          font-size: 32rpx;
+        }
+      }
+    }
+    .express {
+      font-size: 30rpx;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #999;
+    }
+  }
+}
+.detail-bottom {
+  flex: 1;
+  margin-top: 20rpx;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  .top {
+    flex: 1;
+    font-size: 28rpx;
+    padding: 0 20rpx;
+    box-sizing: border-box;
+    line-height: 68rpx;
+    .mark {
+      color: #eb4450;
+      margin-left: 40rpx;
+    }
+  }
+  .bottom {
+    height: 98rpx;
+    display: flex;
+    .left {
+      flex: 1;
+      display: flex;
+      .item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: cenetr;
+        .iconfont {
+          color: #999;
+          font-size: 34rpx;
+        }
+        view {
+          font-size: 28rpx;
+          margin-top: 10rpx;
+          color: #999;
+        }
+      }
+    }
+    .right {
+      flex: 1;
+      display: flex;
+      color: white;
+      text-align: center;
+      line-height: 98rpx;
+      .add-cart {
+        background-color: #f4b73f;
+        font-size: 28rpx;
+        flex: 1;
+      }
+      .buy {
+        flex: 1;
+        background-color: #eb4450;
+        font-size: 28rpx;
+      }
+    }
+  }
+}
+</style>
+<template>
+   <view class="detail-content">
+        <!-- 商品详情图片 -->
+        <view class="detail-img">
+            <swiper indicator-dots autoplay circular>
+                <block wx:for="{{detail_data.pics}}" wx:key="">
+                    <swiper-item>
+                        <image mode="aspectFill" src="{{item.pics_big}}"></image>
+                    </swiper-item>
+                </block>
+            </swiper>
+        </view>
+        <!-- 商品详情 -->
+        <view class="goods-info">
+            <view class="price item">￥{{detail_data.goods_price}}</view>
+            <view class="title item">
+                <text class="title">{{detail_data.goods_name}}</text>
+                <view class="likes" @tap="addLikes">
+                    <text class="iconfont {{!likesFlag?'icon-shoucang':'icon-shoucang-fill'}}"></text>
+                    <text class="shoucang">{{!likesFlag?'收藏':'取消'}}</text>
+                </view>
+            </view>
+            <view class="express item">快递:免运费</view>
+        </view>
+   </view>
+   <view class="detail-bottom">
+       <view class="top">
+           <text>促销</text>
+           <text class="mark">满300减30元</text>
+       </view>
+       <view class="bottom">
+           <view class="left">
+               <view class="item">
+                  <text class="service iconfont icon-kefu"></text>     
+                  <view>联系客服</view>
+               </view>
+               <view class="item" @tap="goCart">
+                  <text class="cart iconfont icon-gouwuche"></text>
+                  <view>购物车</view>
+               </view>
+           </view>
+           <view class="right">
+               <view class="add-cart" @tap="addCart">加入购物车</view>
+               <view class="buy" @tap="buy">立即购买</view>
+           </view>
+       </view>
+   </view>
+</template>
+  
+<script>
+// 引入封装好的功能函数
+var methods = require('../utils/methods.js')
+import wepy from 'wepy'
+export default class goods_detail extends wepy.page {
+  config = {
+    navigationBarTitleText: '商品详情'
+  }
+
+  data = {
+    detail_data: '', // 商品详细信息数据
+    likesFlag: 0, // 是否收藏标志位
+    goods_id: ''
+  }
+
+  components = {}
+
+  methods = {
+    //  加入购物车
+    addCart(event) {
+      this.loginCheck({
+        key: 'loginFlag',
+        noLogin: () => {
+          // 未登录 提示去登陆才能加入购物车
+          wepy.showModal({
+            title: '请登录',
+            content: '您未登录，登陆才能使用此功能',
+            showCancel: true,
+            cancelText: '取消',
+            cancelColor: '#000000',
+            confirmText: '登陆',
+            confirmColor: '#3CC51F',
+            success: res => {
+              if (res.confirm) {
+                // 跳转到我的页面
+                wx.switchTab({
+                  url: 'me'
+                })
+              }
+            }
+          })
+        },
+        login: () => {
+          // 已登录
+          console.log('已登录')
+          // 提示加入购物车成功
+          wx.showToast({
+            title: '加入成功',
+            icon: 'success',
+            duration: 1500,
+            mask: false
+          })
+        }
+      })
+    },
+    // 去购物车
+    goCart(event) {
+      this.loginCheck({
+        key: 'loginFlag',
+        noLogin: () => {
+          // 未登录 提示去登陆才能加入购物车
+          wepy.showModal({
+            title: '请登录',
+            content: '您未登录，登陆才能使用此功能',
+            showCancel: true,
+            cancelText: '取消',
+            cancelColor: '#000000',
+            confirmText: '登陆',
+            confirmColor: '#3CC51F',
+            success: res => {
+              if (res.confirm) {
+                // 跳转到我的页面
+                wx.switchTab({
+                  url: 'me'
+                })
+              }
+            }
+          })
+        },
+        login: () => {
+          // 已登录
+          console.log('已登录')
+          // 去购物车页面
+          wepy.switchTab({
+            url: 'cart'
+          })
+        }
+      })
+    },
+    // 加入收藏
+    addLikes(event) {
+      this.loginCheck({
+        key: 'loginFlag',
+        noLogin: () => {
+          // 未登录 提示去登陆才能加入购物车
+          wepy.showModal({
+            title: '请登录',
+            content: '您未登录，登陆才能使用此功能',
+            showCancel: true,
+            cancelText: '取消',
+            cancelColor: '#000000',
+            confirmText: '登陆',
+            confirmColor: '#3CC51F',
+            success: res => {
+              if (res.confirm) {
+                // 跳转到我的页面
+                wx.switchTab({
+                  url: 'me'
+                })
+              }
+            }
+          })
+        },
+        login: () => {
+          // 已登录
+          console.log('已登录')
+          if (!this.likesFlag) {
+            // 调用封装好的函数保存goods_id到本地Stroage（模拟）
+            methods.methods.likes({
+              goods_id: this.goods_id,
+              flag: 1
+            })
+            // 提示收藏成功
+            wx.showToast({
+              title: '收藏成功',
+              icon: 'success',
+              duration: 1500,
+              mask: false
+            })
+          } else {
+            // 调用封装好的函数保存goods_id到本地Stroage（模拟）
+            methods.methods.likes({
+              goods_id: this.goods_id,
+              flag: 0
+            })
+            // 提示取消成功
+            wx.showToast({
+              title: '取消成功',
+              icon: 'success',
+              duration: 1500,
+              mask: false
+            })
+          }
+          // 收藏标志位取反（收藏 & 取消收藏）
+          this.likesFlag = !this.likesFlag
+          this.$apply()
+        }
+      })
+    },
+    // 立即购买
+    buy(event) {
+      this.loginCheck({
+        key: 'loginFlag',
+        noLogin: () => {
+          // 未登录 提示去登陆才能加入购物车
+          wepy.showModal({
+            title: '请登录',
+            content: '您未登录，登陆才能使用此功能',
+            showCancel: true,
+            cancelText: '取消',
+            cancelColor: '#000000',
+            confirmText: '登陆',
+            confirmColor: '#3CC51F',
+            success: res => {
+              if (res.confirm) {
+                // 跳转到我的页面
+                wx.switchTab({
+                  url: 'me'
+                })
+              }
+            }
+          })
+        },
+        login: () => {
+          // 已登录
+          console.log('已登录')
+        }
+      })
+    }
+  }
+
+  events = {}
+
+  watch = {}
+
+  computed = {}
+
+  onLoad(options) {
+    // console.log(options)
+    // 拿到传入的商品id
+    var goods_id = options.goods_id || 140
+    this.goods_id = goods_id
+    this.$apply()
+    methods.methods.request({
+      url: 'api/public/v1/goods/detail?goods_id=' + goods_id,
+      success: backData => {
+        // console.log(backData)
+        this.detail_data = backData.data.message
+        this.$apply()
+      }
+    })
+  }
+
+  onShow() {
+    this.loginCheck({
+      key: 'loginFlag',
+      noLogin: () => {
+        //   没登录，不去取Stroage
+        this.likesFlag = 0
+      },
+      login: () => {
+        // 判断此商品是否已收藏
+        wx.getStorage({
+          key: 'likes',
+          success: res => {
+            console.log(res)
+            // 获取收藏数据
+            var likesArr = res.data
+            // console.log(this.goods_id)
+            // 循环判断存在数组的索引
+            for (var i = 0; i < likesArr.length; i++) {
+              if (likesArr[i].goods_id == this.goods_id) {
+                // console.log(i)
+                // console.log('!!!')
+                // 有收藏
+                this.likesFlag = 1
+                this.$apply()
+                return
+              }
+            }
+          },
+          fail: err => {
+            console.log(err)
+          }
+        })
+      }
+    })
+  }
+
+  /**
+   * 是否登陆测试
+   * options:{
+   *  key: String  登陆的标志位(必选)
+   *  noLogin: Function 没有登录执行的回调 (可选)
+   *  login: Function 已登陆执行的回调 (可选)
+   * }
+   */
+  loginCheck(options) {
+    if (this.$parent.globalData[options.key] == undefined) {
+      console.log('请传入key')
+      return
+    }
+    if (!this.$parent.globalData[options.key]) {
+      // 没有登录
+      if (options.noLogin) {
+        options.noLogin()
+        return
+      }
+      console.log('没有登录')
+    } else {
+      // 已登录
+      if (options.login) {
+        options.login()
+        return
+      }
+      console.log('已登录')
+    }
+  }
+}
+</script>
