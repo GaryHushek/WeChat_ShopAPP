@@ -54,7 +54,8 @@ export default class extends wepy.app {
     }
   }
   globalData={
-      loginFlag: false
+      loginFlag: false, // 是否登陆标志位
+      userAdressDetaile:{}  // 用户默认的收货地址
   }
   onLaunch() {
     console.log('on launch')

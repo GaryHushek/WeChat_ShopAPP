@@ -30,13 +30,31 @@ page {
       padding: 0 30rpx 0 18rpx;
       box-sizing: border-box;
       .top {
-        height: 50%;
+        height: 30%;
         display: flex;
         justify-content: space-between;
       }
       .bottom {
-        height: 50%;
+        height: 70%;
         display: flex;
+        flex: 1;
+        text {
+          height: 100%;
+          width: 150rpx;
+          display: flex;
+          padding-top: 20rpx;
+          box-sizing: border-box;
+          align-items: center;
+        }
+        view {
+          display: flex;
+          flex: 1;
+          height: 100%;
+          padding-top: 20rpx;
+          align-items: center;
+          line-height: 40rpx;
+          box-sizing: border-box;
+        }
       }
     }
     image {
@@ -194,7 +212,7 @@ page {
         <view class="bottom">
           <text>收货地址:</text>
           <view class="addressDetail">
-            {{user.provinceName}}{{user.cityName}}{{user.countyName}}{{user.detailInfo}}
+            {{addressDetail}}
           </view>
         </view>
       </view>
@@ -260,9 +278,10 @@ export default class cart extends wepy.page {
     user: {},
     cartData: [], // 购物车数据
     cartDetail: [], // 购物车详情数据
-    cartFlag: true, // 购物车有无数据的标志位 , 默认进入页面无购物车数据
+    cartFlag: false, // 购物车有无数据的标志位 , 默认进入页面无购物车数据
     allChooseFlag: false, // 全选标志位
-    totalCount: '' // 购物车被选中商品个数
+    totalCount: '', // 购物车被选中商品个数
+    addressDetail: ''
   }
 
   components = {}
@@ -280,7 +299,10 @@ export default class cart extends wepy.page {
           console.log(res.detailInfo)
           console.log(res.nationalCode)
           console.log(res.telNumber)
+          this.$parent.globalData.userAdressDetaile = res
           this.user = res
+          this.addressDetail =
+            res.provinceName + res.cityName + res.countyName + res.detailInfo
           this.$apply()
         }
       })
@@ -304,6 +326,7 @@ export default class cart extends wepy.page {
       if (flag) {
         this.allChooseFlag = true
       }
+      this.totalCount = this.checkChooseFlag() // 检测选中商品个数
       // 更新Storage
       wx.setStorage({
         key: 'cart',
@@ -344,11 +367,12 @@ export default class cart extends wepy.page {
     },
     // 全选/反选
     allChoose(event) {
-      console.log(event)
+      // console.log(event)
       this.allChooseFlag = !this.allChooseFlag
       for (var i = 0; i < this.cartData.length; i++) {
         this.cartData[i].isCheck = this.allChooseFlag
       }
+      this.totalCount = this.checkChooseFlag() // 检测选中商品个数
       // 同步Stroage
       wx.setStorage({
         key: 'cart',
@@ -384,98 +408,90 @@ export default class cart extends wepy.page {
     }
   }
 
-  onLoad() {
-    this.checkChooseFlag()
-  }
+  onLoad() {}
 
   onShow() {
     // 检测用户是否登陆
-    // if (this.$parent.globalData.loginFlag) {
-    //   // 获取本地购物车缓存,获取购物车数据
-    //   wepy.getStorage({
-    //     key: 'cart',
-    //     success: res => {
-    //       console.log(res)
-    //       // 有数据
-    //       this.cartFlag = true // 购物车隐藏标志位
-    //       // 拿到数据
-    //       for (var i = 0; i < res.data.length; i++) {
-    //         this.cartData.push(res.data[i].goods_id)
-    //         this.$apply()
-    //       }
-    //       console.log(this.cartData)
-    //     },
-    //     fail: err => {
-    //       console.log(err)
-    //       // 没有数据
-    //     }
-    //   })
-    // } else {
-    //   // 未登录 提示去登陆才能查看购物车
-    //   wepy.showModal({
-    //     title: '请登录',
-    //     content: '您未登录，登陆才能使用此功能',
-    //     showCancel: true,
-    //     cancelText: '取消',
-    //     cancelColor: '#000000',
-    //     confirmText: '登陆',
-    //     confirmColor: '#3CC51F',
-    //     success: res => {
-    //       if (res.confirm) {
-    //         // 跳转到我的页面
-    //         wx.switchTab({
-    //           url: 'me'
-    //         })
-    //       }
-    //     }
-    //   })
-    // }
-    // 查询本地Stroage 查出购物车数据
-    wx.getStorage({
-      key: 'cart',
-      success: res => {
-        // 购物车数据
-        this.cartData = res.data
-        // 查询是否全部被选中
-        var flag = true
-        for (var i = 0; i < this.cartData.length; i++) {
-          if (!this.cartData[i].isCheck) {
-            flag = false
-            this.allChooseFlag = false
-            break
+    if (this.$parent.globalData.loginFlag) {
+      // 查询本地Stroage 查出购物车数据
+      wx.getStorage({
+        key: 'cart',
+        success: res => {
+          this.cartFlag = true // 购物车隐藏标志位
+          // 购物车数据
+          this.cartData = res.data
+          // 查询是否全部被选中
+          var flag = true
+          for (var i = 0; i < this.cartData.length; i++) {
+            if (!this.cartData[i].isCheck) {
+              flag = false
+              this.allChooseFlag = false
+              break
+            }
+          }
+          if (flag) {
+            this.allChooseFlag = true
+          }
+          this.$apply()
+          var ids = ''
+          for (var i = 0; i < res.data.length; i++) {
+            ids += res.data[i].goods_id
+            if (i != res.data.length - 1) {
+              ids += ','
+            }
+          }
+          // 调用接口查询到购物车商品详情
+          methods.methods.request({
+            url: 'api/public/v1/goods/goodslist?goods_ids=' + ids,
+            success: backData => {
+              console.log(backData)
+              // 用户默认收货地址
+              if (!this.$parent.globalData.userAdressDetaile.detail) {
+                console.log(this.$parent.globalData.userAdressDetaile)
+                var addr = this.$parent.globalData.userAdressDetaile
+                this.user.userName = addr.userName
+                this.user.telNumber = addr.telNumber
+                this.addressDetail =
+                  addr.provinceName +
+                  addr.cityName +
+                  addr.countyName +
+                  addr.detailInfo
+              }
+              // 购物车详情数据
+              this.cartDetail = backData.data.message
+              this.totalCount = this.checkChooseFlag() // 检测选中商品个数
+              this.$apply()
+            }
+          })
+        }
+      })
+    } else {
+      // 未登录 提示去登陆才能查看购物车
+      wepy.showModal({
+        title: '请登录',
+        content: '您未登录，登陆才能使用此功能',
+        showCancel: true,
+        cancelText: '取消',
+        cancelColor: '#000000',
+        confirmText: '登陆',
+        confirmColor: '#3CC51F',
+        success: res => {
+          if (res.confirm) {
+            // 跳转到我的页面
+            wx.switchTab({
+              url: 'me'
+            })
           }
         }
-        if (flag) {
-          this.allChooseFlag = true
-        }
-        this.$apply()
-        var ids = ''
-        for (var i = 0; i < res.data.length; i++) {
-          ids += res.data[i].goods_id
-          if (i != res.data.length - 1) {
-            ids += ','
-          }
-        }
-        // 调用接口查询到购物车商品详情
-        methods.methods.request({
-          url: 'api/public/v1/goods/goodslist?goods_ids=' + ids,
-          success: backData => {
-            console.log(backData)
-            // 购物车详情数据
-            this.cartDetail = backData.data.message
-            this.$apply()
-          }
-        })
-      }
-    })
+      })
+    }
   }
   // 检测被选中的个数
   checkChooseFlag() {
-    console.log(this)
     var result = 0
-    for (var i; i < this.cartData.length; i++) {
+    for (var i = 0; i < this.cartData.length; i++) {
+      console.log(this.cartData[i].isCheck)
       if (this.cartData[i].isCheck) {
-        console.log('!!!!!!!')
         result += 1
       }
     }
